@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JS to C# Converter</title>
+  <style>
+    /* Ensure entire background and play/game area are pure white */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #111827;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 20px;
+    }
+
+    /* Main container / game area */
+    #main-area {
+      background-color: #ffffff;
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    header {
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    p.subtitle {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    /* Form styling */
+    #conversion-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Hidden file input controlled by custom button */
+    #fileInput {
+      display: none;
+    }
+
+    .btn {
+      appearance: none;
+      background-color: #ffffff;
+      color: #111827;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .btn:hover {
+      background-color: #f9fafb;
+      border-color: #9ca3af;
+    }
+
+    .btn:active {
+      background-color: #f3f4f6;
+    }
+
+    .btn-primary {
+      background-color: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+
+    .btn-primary:hover {
+      background-color: #1d4ed8;
+      border-color: #1d4ed8;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #file-info {
+      font-size: 0.875rem;
+      color: #4b5563;
+    }
+
+    /* Output and Preview Section */
+    #result-container {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      align-self: flex-start;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background-color: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      width: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .editor-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pane-header {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 380px;
+      background-color: #ffffff;
+      color: #1f2937;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.825rem;
+      line-height: 1.5;
+      resize: vertical;
+      white-space: pre;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px #2563eb;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Game/Main Area (White Background) -->
+  <main id="main-area">
+    <header>
+      <h1>JavaScript to C# Converter</h1>
+      <p class="subtitle">Upload any .js file to convert methods like print, message.log, console.log to Console.WriteLine.</p>
+    </header>
+
+    <!-- Blank Form -->
+    <form id="conversion-form" onsubmit="event.preventDefault();">
+      <div class="form-controls">
+        <input type="file" id="fileInput" accept=".js,.mjs,.cjs,.txt" />
+        <button type="button" class="btn" id="openBtn">
+          📂 Open File
+        </button>
+        <span id="file-info">No file chosen</span>
+      </div>
+    </form>
+
+    <!-- Converted Output Area -->
+    <section id="result-container">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <span class="status-badge" id="statusBadge">Converted Successfully</span>
+        <button type="button" class="btn btn-primary" id="downloadBtn">
+          💾 Download .cs File
+        </button>
+      </div>
+
+      <div class="editor-grid">
+        <div>
+          <div class="pane-header">Original JavaScript (.js)</div>
+          <textarea id="jsPreview" readonly></textarea>
+        </div>
+        <div>
+          <div class="pane-header">Converted C# (.cs)</div>
+          <textarea id="csPreview" readonly></textarea>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const openBtn = document.getElementById('openBtn');
+    const fileInfo = document.getElementById('file-info');
+    const resultContainer = document.getElementById('result-container');
+    const jsPreview = document.getElementById('jsPreview');
+    const csPreview = document.getElementById('csPreview');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    let currentFileName = "converted.cs";
+    let convertedCode = "";
+
+    // Trigger file chooser when "Open File" is clicked
+    openBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    // Handle file selection
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      fileInfo.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      currentFileName = file.name.replace(/\.[^/.]+$/, "") + ".cs";
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const jsText = e.target.result;
+        jsPreview.value = jsText;
+
+        // Perform conversion
+        convertedCode = convertJsToCSharp(jsText);
+        csPreview.value = convertedCode;
+
+        resultContainer.style.display = "flex";
+      };
+      reader.readAsText(file);
+    });
+
+    // Download .cs file handler
+    downloadBtn.addEventListener('click', () => {
+      if (!convertedCode) return;
+      const blob = new Blob([convertedCode], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = currentFileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    });
+
+    /**
+     * Converts JavaScript source code to formatted C#
+     */
+    function convertJsToCSharp(js) {
+      // 1. Stash string literals and template literals to avoid interfering with regex
+      const strings = [];
+      let temp = js;
+
+      // Extract template strings `...`
+      temp = temp.replace(/`([^`\\]*(\\.[^`\\]*)*)`/g, (match, content) => {
+        // Convert JS template ${x} to C# string interpolation {x}
+        const interpolated = `$"${content.replace(/\${([^}]+)}/g, '{$1}')}"`;
+        strings.push(interpolated);
+        return `__STR_${strings.length - 1}__`;
+      });
+
+      // Extract regular double-quoted and single-quoted strings
+      temp = temp.replace(/(["'])(?:(?=(\\?))\2.)*?\1/g, (match) => {
+        // Normalize single quoted strings to double quotes in C#
+        let str = match;
+        if (str.startsWith("'") && str.endsWith("'") && str.length > 3) {
+          str = `"${str.slice(1, -1).replace(/"/g, '\\"')}"`;
+        }
+        strings.push(str);
+        return `__STR_${strings.length - 1}__`;
+      });
+
+      // 2. Mappings for functions:
+      // Map 'print(...)', 'message.log(...)', and 'console.log(...)' to 'Console.WriteLine(...)'
+      temp = temp.replace(/\bmessage\.log\s*\(/g, "Console.WriteLine(");
+      temp = temp.replace(/\bprint\s*\(/g, "Console.WriteLine(");
+      temp = temp.replace(/\bconsole\.log\s*\(/g, "Console.WriteLine(");
+      temp = temp.replace(/\bconsole\.error\s*\(/g, "Console.Error.WriteLine(");
+
+      // 3. Keywords and operator replacements
+      temp = temp.replace(/\b===/g, "==");
+      temp = temp.replace(/\b!==/g, "!=");
+      temp = temp.replace(/\blet\s+/g, "var ");
+      temp = temp.replace(/\bconst\s+/g, "var ");
+      temp = temp.replace(/\bundefined\b/g, "null");
+
+      // Math library mappings
+      temp = temp.replace(/\bMath\.floor\b/g, "Math.Floor");
+      temp = temp.replace(/\bMath\.ceil\b/g, "Math.Ceiling");
+      temp = temp.replace(/\bMath\.round\b/g, "Math.Round");
+      temp = temp.replace(/\bMath\.abs\b/g, "Math.Abs");
+      temp = temp.replace(/\bMath\.max\b/g, "Math.Max");
+      temp = temp.replace(/\bMath\.min\b/g, "Math.Min");
+      temp = temp.replace(/\bMath\.sqrt\b/g, "Math.Sqrt");
+      temp = temp.replace(/\bMath\.pow\b/g, "Math.Pow");
+      temp = temp.replace(/\bMath\.PI\b/g, "Math.PI");
+
+      // Common collection & string helpers
+      temp = temp.replace(/\.length\b/g, ".Length");
+      temp = temp.replace(/\.toLowerCase\(\)/g, ".ToLower()");
+      temp = temp.replace(/\.toUpperCase\(\)/g, ".ToUpper()");
+      temp = temp.replace(/\.push\(/g, ".Add(");
+
+      // Function declaration transformation: function name(a, b) -> static void name(dynamic a, dynamic b)
+      temp = temp.replace(/function\s+([a-zA-Z0-9_$]+)\s*\(([^)]*)\)/g, (match, funcName, args) => {
+        let typedArgs = "";
+        if (args.trim().length > 0) {
+          typedArgs = args
+            .split(',')
+            .map(arg => `dynamic ${arg.trim()}`)
+            .join(', ');
+        }
+        return `public static void ${funcName}(${typedArgs})`;
+      });
+
+      // 4. Restore preserved strings
+      temp = temp.replace(/__STR_(\d+)__/g, (match, idx) => {
+        return strings[Number(idx)];
+      });
+
+      // 5. Indent the code to fit neatly inside a standard C# Class wrapper
+      const indentedBody = temp
+        .split('\n')
+        .map(line => line.length > 0 ? "            " + line : "")
+        .join('\n');
+
+      return `using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace TranspiledApp
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+${indentedBody}
+        }
+    }
+}
+`;
+    }
+  </script>
+</body>
+</html>
