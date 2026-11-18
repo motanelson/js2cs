@@ -1,14 +1,8 @@
-﻿using Cosmos.HAL;
-using Cosmos.HAL.BlockDevice.Registers;
-using System;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Text;
 using System.Text.RegularExpressions;
-using Sys = Cosmos.System;
 
 
 
@@ -18,81 +12,14 @@ using Sys = Cosmos.System;
 
 namespace js2cs
 {
-    public class Kernel : Sys.Kernel
-    {
-
- 
-        Sys.FileSystem.CosmosVFS fs;
-        protected override void BeforeRun()
-        {
-            fs = new Sys.FileSystem.CosmosVFS();
-            Sys.FileSystem.VFS.VFSManager.RegisterVFS(fs);
-        }
-
-
-        protected override void Run()
-        {
-            while (true)
-            {
-                Console.BackgroundColor = ConsoleColor.White;
-                Console.ForegroundColor = ConsoleColor.Black;
-                Console.Clear();
-
-                try
-                {
-                    var fs_type = fs.GetFileSystemType(@"0:\");
-                    Console.WriteLine("File System Type: " + fs_type);
-
-                    string[] directory_list = Directory.GetFiles(@"0:\");
-
-                    Console.WriteLine();
-                    Console.WriteLine("FILES:");
-
-                    foreach (string file in directory_list)
-                    {
-                        Console.WriteLine(file);
-                    }
-
-                    var available_space = fs.GetAvailableFreeSpace(@"0:\");
-                    Console.WriteLine("Available Free Space: " + available_space);
-
-                    Console.WriteLine();
-                    Console.Write("Input JS file: ");
-                    string inputFile = Console.ReadLine();
-
-                    Console.Write("Output CS file: ");
-                    string outputFile = Console.ReadLine();
-
-                    string[] args = new string[2];
-
-                    args[0] = "0:\\" + inputFile;
-                    args[1] = "0:\\" + outputFile;
-
-                    Console.WriteLine();
-                    Console.WriteLine("Starting conversion...");
-
-                    Programs.Main(args);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine();
-                    Console.WriteLine("EXCEPTION!");
-                    Console.WriteLine(ex.ToString());
-                }
-
-                Console.WriteLine();
-                Console.WriteLine("Press ENTER to continue...");
-                Console.ReadLine();
-            }
-        }
-
-
-    }
-    public class Programs
+        public class Programs
     {
         public static int Main(string[] args)
         {
-            
+            Console.BackgroundColor = ConsoleColor.White;
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.Clear();
+
             // Check command-line arguments.
             if (args.Length < 2)
             {
